@@ -4,12 +4,14 @@ let left = 300;
 let leftArrow = false;
 let rightArrow = false;
 let attacking = false;
+const enemies = []; // Array
+const enemyCount = 3;
 
-setInterval(moveCharacter, 75);
+setInterval(moveCharacterAndEnemies, 75);
 setInterval(updateGame, 1000 / 60);
-
 document.onkeydown = checkKey;
 document.onkeyup = unCheckKey;
+createEnemies();
 
 function checkKey(e) {
   e = e || window.event;
@@ -38,6 +40,13 @@ function unCheckKey(e) {
 
 function updateGame() {
   currentBackground.style.objectPosition = `${-left}px`;
+
+  // Update enemy positions to stay fixed on background
+  enemies.forEach((enemy) => {
+    enemy.initialX -= 0.5;
+    enemy.element.style.left = `${enemy.initialX - left}px`;
+  });
+
   if (leftArrow) {
     left -= 5;
   }
@@ -54,7 +63,18 @@ function updateGame() {
   }
 }
 
-function moveCharacter() {
+function moveCharacterAndEnemies() {
+  enemies.forEach((enemy) => {
+    if (enemy.frame < 10) {
+      enemy.element.src = `img/Minotaur_01/Minotaur_01_Walking_00${enemy.frame}.png`;
+    } else {
+      enemy.element.src = `img/Minotaur_01/Minotaur_01_Walking_0${enemy.frame}.png`;
+    }
+    enemy.frame++;
+    if (enemy.frame == 17) {
+      enemy.frame = 0;
+    }
+  });
   pirat.src = `img/2/2_entity_000_${state}_00${frame}.png`;
   frame++;
   if (leftArrow) {
@@ -68,6 +88,24 @@ function moveCharacter() {
   if (frame == 7) {
     attacking = false;
     frame = 0;
+  }
+}
+
+function createEnemies() {
+  for (let i = 0; i < enemyCount; i++) {
+    // <img>
+    const enemy = document.createElement("img"); //<img class"enemy">
+    //<img class"enemy" src"img/Minotaur_01/Minotaur_01_Walking_000.png">
+    enemy.classList.add("enemy");
+    enemy.src = "img/Minotaur_01/Minotaur_01_Walking_000.png";
+    document.getElementById("enemiesContainer").appendChild(enemy);
+
+    // Store enemy's position
+    enemies.push({
+      element: enemy,
+      initialX: 800 + i * 300,
+      frame: i,
+    });
   }
 }
 
