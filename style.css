@@ -35,3 +35,11 @@ body {
     left: 0;
     top: 0;
 }
+.bullet {
+  position: absolute;
+  bottom: 167px;
+  left: 295px;
+  height: 40px;
+  width: 30px;
+  rotate: 90deg;
+}

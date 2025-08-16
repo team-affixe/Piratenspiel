@@ -5,6 +5,7 @@ let leftArrow = false;
 let rightArrow = false;
 let attacking = false;
 const enemies = []; // Array
+const bullets = [];
 const enemyCount = 3;
 
 setInterval(moveCharacterAndEnemies, 75);
@@ -25,8 +26,26 @@ function checkKey(e) {
   }
   if (e.keyCode == "68") {
     // 'd' Taste
-    attacking = true;
+    startAttack();
   }
+}
+
+function startAttack() {
+  attacking = true;
+  // Bullet anzeigen
+  setTimeout(function () {
+    const bullet = document.createElement("img"); // <img>
+    bullet.classList.add("bullet"); // <img class="bullet">
+    // <img class="enemy" src="img/bullet.png">
+    bullet.src = "img/bullet.png";
+
+    document.body.appendChild(bullet);
+
+    bullets.push({
+      element: bullet,
+      initialX: 295,
+    });
+  }, 50);
 }
 
 function unCheckKey(e) {
@@ -47,6 +66,11 @@ function updateGame() {
   enemies.forEach((enemy) => {
     enemy.initialX -= 0.5;
     enemy.element.style.left = `${enemy.initialX - left}px`;
+  });
+
+  bullets.forEach((bullet) => {
+    bullet.initialX += 15;
+    bullet.element.style.left = `${bullet.initialX}px`;
   });
 
   if (leftArrow && left > 0) {
@@ -96,8 +120,7 @@ function moveCharacterAndEnemies() {
 function createEnemies() {
   for (let i = 0; i < enemyCount; i++) {
     // <img>
-    const enemy = document.createElement("img"); //<img class"enemy">
-    //<img class"enemy" src"img/Minotaur_01/Minotaur_01_Walking_000.png">
+    const enemy = document.createElement("img"); //<img class="enemy">    //<img class"enemy" src"img/Minotaur_01/Minotaur_01_Walking_000.png">
     enemy.classList.add("enemy");
     enemy.src = "img/Minotaur_01/Minotaur_01_Walking_000.png";
     document.getElementById("enemiesContainer").appendChild(enemy);
