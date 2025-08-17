@@ -11,6 +11,7 @@ let backgroundMusic = new Audio("sounds/background_music.mp3");
 let hit = new Audio("sounds/hit.mp3");
 let shot = new Audio("sounds/shot.mp3");
 let walk = new Audio("sounds/walk.mp3");
+let gameOver = new Audio("sounds/game_over.mp3");
 walk.loop = true; // Setze die Schleife für den Geh-Sound
 backgroundMusic.volume = 0.1; // Leiser machen
 
@@ -23,22 +24,24 @@ document.onkeyup = unCheckKey;
 createEnemies();
 
 function checkKey(e) {
-  e = e || window.event;
+  if (state !== "DIE") {
+    e = e || window.event;
 
-  backgroundMusic.play();
-  backgroundMusic.loop = true; // Hintergrundmusik in einer Endlosschleife abspielen
-  if (e.keyCode == "37") {
-    // left arrow
-    leftArrow = true;
-    setState("WALK");
-  } else if (e.keyCode == "39") {
-    // right arrow
-    rightArrow = true;
-    setState("WALK");
-  }
-  if (e.keyCode == "68") {
-    // 'd' Taste
-    startAttack();
+    // backgroundMusic.play();
+    backgroundMusic.loop = true; // Hintergrundmusik in einer Endlosschleife abspielen
+    if (e.keyCode == "37") {
+      // left arrow
+      leftArrow = true;
+      setState("WALK");
+    } else if (e.keyCode == "39") {
+      // right arrow
+      rightArrow = true;
+      setState("WALK");
+    }
+    if (e.keyCode == "68") {
+      // 'd' Taste
+      startAttack();
+    }
   }
 }
 
@@ -75,8 +78,11 @@ function unCheckKey(e) {
 function updateGame() {
   if (state !== "DIE") {
     currentBackground.style.left = `${-left}px`;
-    currentBackground2.style.left = `${-(left - 1721)}px`;
-    currentBackground3.style.left = `${-(left - 1721 * 2)}px`;
+    currentBackground2.style.left = `${-(left - currentBackground.width)}px`;
+    currentBackground3.style.left = `${-(
+      left -
+      currentBackground.width * 2
+    )}px`;
 
     // Update enemy positions to stay fixed on background
     enemies.forEach((enemy) => {
@@ -98,8 +104,10 @@ function updateGame() {
       left += 5;
     }
 
-    if(leftArrow || rightArrow) {
+    if (leftArrow || rightArrow) {
       walk.play();
+    } else {
+      walk.pause();
     }
 
     if (attacking) {
@@ -245,6 +253,10 @@ function checkCharacterCollision() {
         // Bewegung des Charakters und der Gegner stoppen
         leftArrow = false;
         rightArrow = false;
+        walk.pause(); // Geh-Sound stoppen
+        backgroundMusic.pause(); // Hintergrundmusik stoppen
+        gameOver.currentTime = 0; // Setze die Wiedergabezeit auf 0, um den Sound neu zu starten
+        gameOver.play(); // Spiele den Game Over Sound ab
 
         // Gegnerbewegung stoppen
         enemies.forEach((enemy) => {
