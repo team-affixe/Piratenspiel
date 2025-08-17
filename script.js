@@ -5,11 +5,19 @@ let leftArrow = false;
 let rightArrow = false;
 let attacking = false;
 const enemies = []; // Array
-const bullets = [];
-const enemyCount = 3;
+const bullets = []; // Array
+const enemyCount = 8;
+let backgroundMusic = new Audio("sounds/background_music.mp3");
+let hit = new Audio("sounds/hit.mp3");
+let shot = new Audio("sounds/shot.mp3");
+let walk = new Audio("sounds/walk.mp3");
+walk.loop = true; // Setze die Schleife für den Geh-Sound
+backgroundMusic.volume = 0.1; // Leiser machen
 
 setInterval(moveCharacterAndEnemies, 75);
 setInterval(updateGame, 1000 / 60);
+setInterval(checkCollisions, 1000 / 60);
+setInterval(checkCharacterCollision, 1000 / 60);
 document.onkeydown = checkKey;
 document.onkeyup = unCheckKey;
 createEnemies();
@@ -17,10 +25,14 @@ createEnemies();
 function checkKey(e) {
   e = e || window.event;
 
+  backgroundMusic.play();
+  backgroundMusic.loop = true; // Hintergrundmusik in einer Endlosschleife abspielen
   if (e.keyCode == "37") {
+    // left arrow
     leftArrow = true;
     setState("WALK");
   } else if (e.keyCode == "39") {
+    // right arrow
     rightArrow = true;
     setState("WALK");
   }
@@ -33,23 +45,26 @@ function checkKey(e) {
 function startAttack() {
   attacking = true;
   // Bullet anzeigen
+
   setTimeout(function () {
+    shot.currentTime = 0; // Setze die Wiedergabezeit auf 0, um den Sound neu zu starten
+    shot.play();
     const bullet = document.createElement("img"); // <img>
     bullet.classList.add("bullet"); // <img class="bullet">
     // <img class="enemy" src="img/bullet.png">
     bullet.src = "img/bullet.png";
-
     document.body.appendChild(bullet);
 
     bullets.push({
       element: bullet,
       initialX: 295,
     });
-  }, 50);
+  }, 0);
 }
 
 function unCheckKey(e) {
   e = e || window.event;
+
   if (e.keyCode == "37") {
     leftArrow = false;
   } else if (e.keyCode == "39") {
@@ -58,71 +73,80 @@ function unCheckKey(e) {
 }
 
 function updateGame() {
-  currentBackground.style.left = `${-left}px`;
-  currentBackground2.style.left = `${-(left - 1721)}px`;
-  currentBackground3.style.left = `${-(left - 1721 * 2)}px`;
+  if (state !== "DIE") {
+    currentBackground.style.left = `${-left}px`;
+    currentBackground2.style.left = `${-(left - 1721)}px`;
+    currentBackground3.style.left = `${-(left - 1721 * 2)}px`;
 
-  // Update enemy positions to stay fixed on background
-  enemies.forEach((enemy) => {
-    enemy.initialX -= 0.5;
-    enemy.element.style.left = `${enemy.initialX - left}px`;
-  });
+    // Update enemy positions to stay fixed on background
+    enemies.forEach((enemy) => {
+      if (!enemy.hit) {
+        enemy.initialX -= 0.5;
+      }
+      enemy.element.style.left = `${enemy.initialX - left}px`;
+    });
 
-  bullets.forEach((bullet) => {
-    bullet.initialX += 15;
-    bullet.element.style.left = `${bullet.initialX}px`;
-  });
+    bullets.forEach((bullet) => {
+      bullet.initialX += 15;
+      bullet.element.style.left = `${bullet.initialX}px`;
+    });
 
-  if (leftArrow && left > 0) {
-    left -= 5;
-  }
-  if (rightArrow && left < 3235) {
-    left += 5;
-  }
+    if (leftArrow && left > 0) {
+      left -= 5;
+    }
+    if (rightArrow && left < 3235) {
+      left += 5;
+    }
 
-  if (attacking) {
-    setState("ATTACK");
-  } else if (leftArrow || rightArrow) {
-    setState("WALK");
-  } else {
-    setState("IDLE");
+    if(leftArrow || rightArrow) {
+      walk.play();
+    }
+
+    if (attacking) {
+      setState("ATTACK");
+    } else if (leftArrow || rightArrow) {
+      setState("WALK");
+    } else {
+      setState("IDLE");
+    }
   }
 }
 
 function moveCharacterAndEnemies() {
-  enemies.forEach((enemy) => {
-    if (enemy.frame < 10) {
-      enemy.element.src = `img/Minotaur_01/Minotaur_01_Walking_00${enemy.frame}.png`;
-    } else {
-      enemy.element.src = `img/Minotaur_01/Minotaur_01_Walking_0${enemy.frame}.png`;
-    }
-    enemy.frame++;
-    if (enemy.frame == 17) {
-      enemy.frame = 0;
-    }
-  });
-  pirat.src = `img/2/2_entity_000_${state}_00${frame}.png`;
-  frame++;
-  if (leftArrow) {
-    pirat.style.transform = "scaleX(-1)";
+  if (state !== "DIE") {
+    updateEnemies();
   }
 
-  if (rightArrow) {
-    pirat.style.transform = "scaleX(1)";
-  }
+  if (state === "DIE" && frame < 7) {
+    // Führe die Sterbeanimation einmal aus
+    pirat.src = `img/2/2_entity_000_DIE_00${frame}.png`;
+    frame++;
+  } else if (state !== "DIE") {
+    // Andere Zustände
+    pirat.src = `img/2/2_entity_000_${state}_00${frame}.png`;
+    frame++;
+    if (leftArrow) {
+      pirat.style.transform = "scaleX(-1)";
+    }
 
-  if (frame == 7) {
-    attacking = false;
-    frame = 0;
+    if (rightArrow) {
+      pirat.style.transform = "scaleX(1)";
+    }
+
+    if (frame == 7) {
+      attacking = false;
+      frame = 0;
+    }
   }
 }
 
 function createEnemies() {
   for (let i = 0; i < enemyCount; i++) {
-    // <img>
-    const enemy = document.createElement("img"); //<img class="enemy">    //<img class"enemy" src"img/Minotaur_01/Minotaur_01_Walking_000.png">
-    enemy.classList.add("enemy");
+    const enemy = document.createElement("img"); // <img>
+    enemy.classList.add("enemy"); // <img class="enemy">
+    // <img class="enemy" src="img/Minotaur_01/Minotaur_01_Walking_000.png">
     enemy.src = "img/Minotaur_01/Minotaur_01_Walking_000.png";
+
     document.getElementById("enemiesContainer").appendChild(enemy);
 
     // Store enemy's position
@@ -134,9 +158,99 @@ function createEnemies() {
   }
 }
 
+function checkCollisions() {
+  enemies.forEach((enemy) => {
+    if (!enemy.hit) {
+      // Nur ungetroffene Gegner prüfen
+      bullets.forEach((bullet, bulletIndex) => {
+        const bulletRect = bullet.element.getBoundingClientRect();
+        const enemyRect = enemy.element.getBoundingClientRect();
+
+        // Kollision überprüfen
+        if (
+          bulletRect.left < enemyRect.right &&
+          bulletRect.right > enemyRect.left &&
+          bulletRect.top < enemyRect.bottom &&
+          bulletRect.bottom > enemyRect.top
+        ) {
+          // Treffer
+          hit.currentTime = 0; // Setze die Wiedergabezeit auf 0, um den Sound neu zu starten
+          hit.play();
+          enemy.hit = true; // Gegner als getroffen markieren
+          enemy.frame = 5; // Animation von vorne beginnen
+
+          // Kugel entfernen
+          bullet.element.remove(); // Entferne das Kugel-Element aus dem DOM
+          bullets.splice(bulletIndex, 1); // Entferne die Kugel aus dem Array
+        }
+      });
+    }
+  });
+}
+
+function updateEnemies() {
+  enemies.forEach((enemy) => {
+    if (enemy.hit) {
+      // Dying Animation
+      if (enemy.frame < 10) {
+        enemy.element.src = `img/Minotaur_01/Minotaur_01_Dying_00${enemy.frame}.png`;
+      } else {
+        enemy.element.src = `img/Minotaur_01/Minotaur_01_Dying_0${enemy.frame}.png`;
+      }
+      enemy.frame++;
+      // Dying Animation endet bei Frame 14
+      if (enemy.frame > 14) {
+        enemy.frame = 14; // Bleibt auf dem letzten Bild stehen
+      }
+    } else {
+      // Walking Animation
+      if (enemy.frame < 10) {
+        enemy.element.src = `img/Minotaur_01/Minotaur_01_Walking_00${enemy.frame}.png`;
+      } else {
+        enemy.element.src = `img/Minotaur_01/Minotaur_01_Walking_0${enemy.frame}.png`;
+      }
+      enemy.frame++;
+      if (enemy.frame == 17) {
+        enemy.frame = 0;
+      }
+    }
+  });
+}
+
 function setState(newState) {
   if (state !== newState) {
     frame = 0;
     state = newState;
+  }
+}
+
+function checkCharacterCollision() {
+  if (state !== "DIE") {
+    const piratRect = pirat.getBoundingClientRect();
+
+    enemies.forEach((enemy) => {
+      const enemyRect = enemy.element.getBoundingClientRect();
+
+      // Kollision zwischen Charakter und Gegner überprüfen
+      if (
+        piratRect.left < enemyRect.right &&
+        piratRect.right > enemyRect.left &&
+        piratRect.top < enemyRect.bottom &&
+        piratRect.bottom > enemyRect.top &&
+        !enemy.hit
+      ) {
+        // Kollision erkannt
+        setState("DIE"); // Setze den Zustand des Charakters auf 'DIE'
+
+        // Bewegung des Charakters und der Gegner stoppen
+        leftArrow = false;
+        rightArrow = false;
+
+        // Gegnerbewegung stoppen
+        enemies.forEach((enemy) => {
+          enemy.movable = false; // Füge eine Eigenschaft hinzu, um die Bewegung zu kontrollieren
+        });
+      }
+    });
   }
 }
