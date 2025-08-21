@@ -6,7 +6,7 @@ let rightArrow = false;
 let attacking = false;
 const enemies = []; // Array
 const bullets = []; // Array
-const enemyCount = 8;
+const enemyCount = 100;
 let backgroundMusic = new Audio("sounds/background_music.mp3");
 let hit = new Audio("sounds/hit.mp3");
 let shot = new Audio("sounds/shot.mp3");
@@ -27,7 +27,7 @@ function checkKey(e) {
   if (state !== "DIE") {
     e = e || window.event;
 
-    // backgroundMusic.play();
+    backgroundMusic.play();
     backgroundMusic.loop = true; // Hintergrundmusik in einer Endlosschleife abspielen
     if (e.keyCode == "37") {
       // left arrow
@@ -87,7 +87,7 @@ function updateGame() {
     // Update enemy positions to stay fixed on background
     enemies.forEach((enemy) => {
       if (!enemy.hit) {
-        enemy.initialX -= 0.5;
+        enemy.initialX -= 3.8;
       }
       enemy.element.style.left = `${enemy.initialX - left}px`;
     });
@@ -150,18 +150,20 @@ function moveCharacterAndEnemies() {
 
 function createEnemies() {
   for (let i = 0; i < enemyCount; i++) {
+    const enemyType = Math.floor(Math.random() * 3) +1;
     const enemy = document.createElement("img"); // <img>
     enemy.classList.add("enemy"); // <img class="enemy">
     // <img class="enemy" src="img/Minotaur_01/Minotaur_01_Walking_000.png">
-    enemy.src = "img/Minotaur_01/Minotaur_01_Walking_000.png";
+    enemy.src = `img/Minotaur_0${enemyType}/Minotaur_0${enemyType}_Walking_000.png`;
 
     document.getElementById("enemiesContainer").appendChild(enemy);
 
     // Store enemy's position
     enemies.push({
       element: enemy,
-      initialX: 800 + i * 300,
-      frame: i,
+      initialX: 800 + i * 600 * Math.random(),
+      frame: i % 17, // Start frame for animation
+      type: enemyType, // Speichere den Typ des Gegners
     });
   }
 }
@@ -201,9 +203,9 @@ function updateEnemies() {
     if (enemy.hit) {
       // Dying Animation
       if (enemy.frame < 10) {
-        enemy.element.src = `img/Minotaur_01/Minotaur_01_Dying_00${enemy.frame}.png`;
+        enemy.element.src = `img/Minotaur_0${enemy.type}/Minotaur_0${enemy.type}_Dying_00${enemy.frame}.png`;
       } else {
-        enemy.element.src = `img/Minotaur_01/Minotaur_01_Dying_0${enemy.frame}.png`;
+        enemy.element.src = `img/Minotaur_0${enemy.type}/Minotaur_0${enemy.type}_Dying_0${enemy.frame}.png`;
       }
       enemy.frame++;
       // Dying Animation endet bei Frame 14
@@ -213,9 +215,9 @@ function updateEnemies() {
     } else {
       // Walking Animation
       if (enemy.frame < 10) {
-        enemy.element.src = `img/Minotaur_01/Minotaur_01_Walking_00${enemy.frame}.png`;
+        enemy.element.src = `img/Minotaur_0${enemy.type}/Minotaur_0${enemy.type}_Walking_00${enemy.frame}.png`;
       } else {
-        enemy.element.src = `img/Minotaur_01/Minotaur_01_Walking_0${enemy.frame}.png`;
+        enemy.element.src = `img/Minotaur_0${enemy.type}/Minotaur_0${enemy.type}_Walking_0${enemy.frame}.png`;
       }
       enemy.frame++;
       if (enemy.frame == 17) {
