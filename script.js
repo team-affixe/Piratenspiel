@@ -13,7 +13,7 @@ let shot = new Audio("sounds/shot.mp3");
 let walk = new Audio("sounds/walk.mp3");
 let gameOver = new Audio("sounds/game_over.mp3");
 walk.loop = true; // Setze die Schleife für den Geh-Sound
-backgroundMusic.volume = 0.1; // Leiser machen
+backgroundMusic.volume = 0.5; // Leiser machen
 
 setInterval(moveCharacterAndEnemies, 75);
 setInterval(updateGame, 1000 / 60);
